@@ -1,4 +1,4 @@
-Microservice ready application for Vespaio
+# Microservice ready application for Vespaio
 
 Vespaio is a Slovakian coffee spot network, and this application will be a starting point to help onboard new employees in a more efficient and easy way.
 
