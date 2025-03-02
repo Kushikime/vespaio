@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "vespaio",
   "version": "0.0.0",
   "description": "",
   "main": "build/src/index.js",
@@ -15,18 +15,17 @@
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
-    "prepare": "npm run compile",
-    "pretest": "npm run compile",
-    "posttest": "npm run lint",
-    "build api": "tsc -p tsconfig.json",
-    "start api": "node ./build/src/apps/api/index.js"
+    "start api": "bun --hot --inspect run ./src/apps/api/index.ts"
   },
   "devDependencies": {
-    "@types/node": "^22.13.8",
     "gts": "^6.0.2",
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "fastify": "^5.2.1"
+    "bun-types": "^1.2.4",
+    "fastify": "^5.2.1",
+    "inversify": "^7.0.1",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0"
   }
 }
