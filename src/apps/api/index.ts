@@ -1,19 +1,9 @@
-import {errorCodes, fastify as Fastify} from 'fastify';
+import './utils/otel';
+import {fastify as Fastify} from 'fastify';
 import {logger} from '../../shared/utils/logger';
 import {AppError, errorHandler} from './utils/errors';
 import {tryCatch} from './utils/api';
 
-// process.on('uncaughtException', (err: Error) => {
-//   errorManagement.handler.handleError(error);
-
-//   if (!errorManagement.handler.isTrustedError(error)) {
-//     process.exit(1);
-//   }
-// });
-
-// const loggerInstance = new Logger('api').getLogger() as any;
-
-// const fastify = Fastify({loggerInstance});
 const fastify = Fastify({loggerInstance: logger as any});
 
 fastify.setErrorHandler(async (err, req, res) => {
@@ -21,12 +11,12 @@ fastify.setErrorHandler(async (err, req, res) => {
 });
 
 function getUser() {
-  return undefined;
+  return {id: 1, name: 'Erik'};
 }
 
 fastify.get(
   '/ping',
-  tryCatch(async (req: any, res: any) => {
+  tryCatch(async () => {
     const user = getUser();
 
     if (!user) {
