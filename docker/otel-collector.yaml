@@ -1,0 +1,30 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch: {} # Add a batch processor to improve performance
+
+extensions:
+  health_check: {}
+
+exporters:
+  otlp:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: '0.0.0.0:9090'
+  debug:
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch] # Add the batch processor to the traces pipeline
+      exporters: [otlp, debug] # Add the logging exporter to the traces pipeline
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus]

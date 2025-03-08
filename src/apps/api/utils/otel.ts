@@ -1,18 +1,36 @@
-import {NodeSDK} from '@opentelemetry/sdk-node';
-import {getNodeAutoInstrumentations} from '@opentelemetry/auto-instrumentations-node';
-import {PeriodicExportingMetricReader} from '@opentelemetry/sdk-metrics';
+import {Resource} from '@opentelemetry/resources';
+import {ATTR_SERVICE_NAME} from '@opentelemetry/semantic-conventions';
+import {diag, DiagConsoleLogger, DiagLogLevel} from '@opentelemetry/api';
 import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-http';
-import {OTLPMetricExporter} from '@opentelemetry/exporter-metrics-otlp-http';
+const {
+  BasicTracerProvider,
+  ConsoleSpanExporter,
+  SimpleSpanProcessor,
+} = require('@opentelemetry/sdk-trace-base');
+// const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-proto');
 
-const sdk = new NodeSDK({
-  serviceName: 'vespa-api',
-  traceExporter: new OTLPTraceExporter({
-    headers: {},
-  }),
-  metricReader: new PeriodicExportingMetricReader({
-    exporter: new OTLPMetricExporter({}),
-  }),
-  instrumentations: [getNodeAutoInstrumentations()],
+diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
+
+const exporter = new OTLPTraceExporter({
+  url: 'http://docker.host.internal:4318/v1/traces',
+  // headers: {
+  //   foo: 'bar'
+  // },
 });
 
-sdk.start();
+const provider = new BasicTracerProvider({
+  resource: new Resource({[ATTR_SERVICE_NAME]: 'vespa-api'}),
+  spanProcessors: [
+    new SimpleSpanProcessor(exporter),
+    new SimpleSpanProcessor(new ConsoleSpanExporter()),
+  ],
+});
+provider.register();
+
+// Create a span. A span must be closed.
+// const parentSpan = tracer.startSpan('main');
+// for (let i = 0; i < 10; i += 1) {
+//   doWork(parentSpan);
+// }
+// Be sure to end the span.
+// parentSpan.end();`

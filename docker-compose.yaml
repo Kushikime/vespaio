@@ -1,0 +1,89 @@
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    networks:
+      - mongodb-network
+    volumes:
+      - mongodb-data:/data/db
+      - mongodb-logs:/var/log/mongodb
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD}
+      ME_CONFIG_MONGODB_SERVER: "mongodb"
+    depends_on:
+      - mongodb
+    networks:
+      - mongodb-network
+
+  # postgres_db:
+  #   image: postgres:latest
+  #   container_name: vespaio_postgresql 
+  #   restart: always
+  #   environment:
+  #   - POSTGRES_USER={POSTGRES_USER}
+  #   - POSTGRES_PASSWORD={POSTGRES_PASSWORD}
+  #   ports:
+  #   - '5432:5432'
+  #   volumes:
+  #   - postgres_db:/var/lib/postgresql/data
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./docker/otel-collector.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp" # UDP port for Jaeger agent
+      - "16686:16686" # Web UI
+      - "14268:14268" # HTTP port for spans
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./docker/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+#   grafana:
+#     image: grafana/grafana:latest
+#     ports:
+#       - "3000:3000"
+#     volumes:
+#       - grafana-storage:/var/lib/grafana
+
+# volumes:
+#   grafana-storage:
+
+# volumes:
+#   postgres_db:
+#     driver: local
+
+
+volumes:
+  mongodb-data:
+    driver: local
+    name: mongo-data
+  mongodb-logs:
+    driver: local
+    name: mongo-logs
+
+networks:
+  mongodb-network:
+    driver: bridge
+    name: mongo-network

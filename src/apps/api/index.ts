@@ -3,6 +3,8 @@ import {fastify as Fastify} from 'fastify';
 import {logger} from '../../shared/utils/logger';
 import {AppError, errorHandler} from './utils/errors';
 import {tryCatch} from './utils/api';
+import {trace} from '@opentelemetry/api';
+const tracer = trace.getTracer('example-otlp-exporter-node');
 
 const fastify = Fastify({loggerInstance: logger as any});
 
@@ -16,13 +18,15 @@ function getUser() {
 
 fastify.get(
   '/ping',
-  tryCatch(async () => {
+  tryCatch(async (req: any, res: any) => {
+    const trace = tracer.startSpan('ping');
     const user = getUser();
 
     if (!user) {
       throw new AppError('user.notFound', 400, 'User not found', true);
     }
-    return 'pong\n';
+    trace.end();
+    res.send('pong\n');
   }),
 );
 
