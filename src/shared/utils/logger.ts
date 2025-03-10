@@ -140,6 +140,41 @@ const errorConsoleLogFormat = winston.format.printf(info => {
   return `${time}: [${info.level}]: ${JSON.stringify(info.message, null, 4)}\n`;
 });
 
+const infoConsoleLogFormat = winston.format.printf((info: any) => {
+  const d = new Date();
+  const h = d.getHours();
+  const m = d.getMinutes();
+  const s = d.getSeconds();
+
+  const {level, message = {}} = info;
+
+  const time = `${h}:${m}:${s}`;
+  let log = `${time}: [${level}]`;
+
+  if (message?.req) {
+    const {
+      id,
+      params,
+      query,
+      body,
+      raw: {method, url},
+    } = message.req;
+
+    log += `${id}:`;
+    log += ` [${method}]`;
+    log += ` ${url} `;
+    log += Object.keys(query).length ? JSON.stringify(query, null, 4) : '';
+    log += Object.keys(params).length ? JSON.stringify(params, null, 4) : '';
+    log += body ? JSON.stringify(body, null, 4) : '';
+  } else if (message?.res) {
+    log = 'response';
+  } else {
+    log = `${time}: [${info.level}]: ${JSON.stringify(info.message, null, 4)}`;
+  }
+
+  return log;
+});
+
 const logger = winston.createLogger({
   // Define levels required by Fastify (by default winston has verbose level and does not have trace)
   levels: {
@@ -153,7 +188,6 @@ const logger = winston.createLogger({
   // Setup log level
   level: 'info',
   // Setup logs format
-  format: winston.format.json(),
   // Define transports to write logs, it could be http, file or console
   transports: [
     new winston.transports.File({
@@ -171,6 +205,13 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         winston.format.colorize(),
         errorConsoleLogFormat,
+      ),
+    }),
+    new winston.transports.Console({
+      level: 'info',
+      format: winston.format.combine(
+        winston.format.colorize(),
+        infoConsoleLogFormat,
       ),
     }),
   ],

@@ -1,5 +1,6 @@
 import {FastifyError, FastifyReply, FastifyRequest} from 'fastify';
 import {HttpCodes} from 'fastify/types/utils';
+import {logger} from '../../../shared/utils/logger';
 
 export class AppError extends Error {
   public readonly name: string;
@@ -33,7 +34,7 @@ class ErrorHandler {
   ) {
     // fastify.log.debug(`Request url: `, request.req.url);
     // fastify.log.debug(`Payload: `, request.body);
-    fastify.log.error(`Error occurred: `, error);
+    logger.error(`Error occurred: `, error);
     // Check if the error is an instance of AppError
     if (error instanceof AppError) {
       await reply.status(error.httpCode).send({
